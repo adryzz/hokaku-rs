@@ -1,3 +1,5 @@
+mod server;
+
 use hokaku_common::PixelFormat;
 use obs_wrapper::{
     // Everything required for modules
@@ -87,6 +89,9 @@ impl Module for HokakuModule {
 
     // Load the module - create all sources, returning true if all went well.
     fn load(&mut self, load_context: &mut LoadContext) -> bool {
+
+        server::start_server(self, load_context);
+
         // Create the source
         let source = load_context
             .create_source_builder::<HokakuSource>()

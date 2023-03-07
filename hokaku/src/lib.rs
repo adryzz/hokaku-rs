@@ -1,3 +1,4 @@
+use hokaku_common::PixelFormat;
 use obs_wrapper::{
     // Everything required for modules
     prelude::*,
@@ -6,7 +7,7 @@ use obs_wrapper::{
     // Macro for registering modules
     obs_register_module,
     // Macro for creating strings
-    obs_string,
+    obs_string, properties::{Properties, NumberProp},
 };
 
 // The module that will handle creating the source.
@@ -15,7 +16,11 @@ struct HokakuModule {
 }
 
 // The source that will be shown inside OBS.
-struct HokakuSource;
+struct HokakuSource {
+    width: u32,
+    height: u32,
+    pixel_format: PixelFormat,
+}
 
 // The state of the source that is managed by OBS and used in each trait method.
 struct SourceData;
@@ -32,14 +37,40 @@ impl Sourceable for HokakuSource {
     }
 
     fn create(create: &mut CreatableSourceContext<Self>, source: SourceContext) -> Self {
-        todo!()
+        // TODO: everything
+        if let Some(a) = create.settings.get_json() {
+            println!("{}", a);
+        }
+        return Self {
+            width: 1280,
+            height: 720,
+            pixel_format: PixelFormat::RGBA
+        }
+    }
+}
+
+impl GetPropertiesSource for HokakuSource {
+    fn get_properties(&mut self) -> Properties {
+        let mut properties = Properties::new();
+        properties
+            .add(
+                obs_string!("buffer_width"),
+                obs_string!("The width of the buffer"),
+                NumberProp::new_int().with_range(240..=3840)
+            )
+            .add(
+                obs_string!("buffer_height"),
+                obs_string!("The height of the buffer"),
+                NumberProp::new_int().with_range(240..=2160)
+            );
+        properties
     }
 }
 
 // Allow OBS to show a name for the source
 impl GetNameSource for HokakuSource {
     fn get_name() -> ObsString {
-        obs_string!("hokaku source")
+        obs_string!("Hokaku Source")
     }
 }
 
@@ -56,14 +87,14 @@ impl Module for HokakuModule {
 
     // Load the module - create all sources, returning true if all went well.
     fn load(&mut self, load_context: &mut LoadContext) -> bool {
-
-        println!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         // Create the source
         let source = load_context
             .create_source_builder::<HokakuSource>()
             // Since GetNameSource is implemented, this method needs to be called to
             // enable it.
             .enable_get_name()
+            .enable_get_properties()
+            .with_icon(Icon::Custom)
             .build();
 
         // Tell OBS about the source so that it will show it.

@@ -1,0 +1,2 @@
+[workspace]
+members = ["hokaku", "hokaku-client", "hokaku-common"]
